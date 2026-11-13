@@ -1,0 +1,38 @@
+﻿version: '3.8'
+
+services:
+  # The API Service
+  raceday-api:
+    build:
+      context: ./RaceDayAPI
+      dockerfile: Dockerfile
+    container_name: raceday-api
+    ports:
+      - "5108:8080"  # Maps local port 5108 to container port 8080
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      # Note: If you are using a local SQL Server, this might still fail inside Docker.
+      # You may need to use SQL Server in Docker or connection string pointing to host.docker.internal
+    networks:
+      - raceday-network
+
+  # The MVC Web App
+  raceday-mvc:
+    build:
+      context: ./RaceDayMVC
+      dockerfile: Dockerfile
+    container_name: raceday-mvc
+    ports:
+      - "5200:8080"  # Maps local port 5200 to container port 8080
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      # CRITICAL: Override the API URL to use the service name "raceday-api"
+      - ApiSettings__BaseUrl=http://raceday-api:8080
+    depends_on:
+      - raceday-api
+    networks:
+      - raceday-network
+
+networks:
+  raceday-network:
+    driver: bridge
