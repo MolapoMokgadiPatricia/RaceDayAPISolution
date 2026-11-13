@@ -1,46 +1,46 @@
-version: '3.8'
-
 services:
-  # 1. The Database
   sql:
     image: mcr.microsoft.com/mssql/server:2022-latest
     environment:
       ACCEPT_EULA: "Y"
       MSSQL_SA_PASSWORD: ${SA_PASSWORD}
-    ports:
-      - "1433:1433"
     volumes:
       - sqldata:/var/opt/mssql
     networks:
       - raceday-network
 
-  # 2. The API
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite
+    ports:
+      - "10000:10000" # Blob service
+    command: "azurite-blob --blobHost 0.0.0.0 --blobPort 10000"
+    networks:
+      - raceday-network
+
   api:
     build:
       context: .
       dockerfile: RaceDayAPI.Dockerfile
     depends_on:
       - sql
+      - azurite
     restart: on-failure
     environment:
-      # Connection string to the SQL container
       ConnectionStrings__RaceDayConnection: "Server=sql,1433;Database=RaceDayDB;User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=True;"
-      # Connection string for Azure Blob Storage (using local emulator string for now)
-      ConnectionStrings__AzureBlobStorage: ${AZURE_STORAGE_CONNECTION_STRING}
+      # CRITICAL: Use the Azurite container for Blob Storage
+      ConnectionStrings__AzureBlobStorage: "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;"
       ASPNETCORE_ENVIRONMENT: Development
     ports:
       - "5108:8080"
     networks:
       - raceday-network
 
-  # 3. The MVC Web App
   web:
     build:
       context: ./RaceDayMVC
     depends_on:
       - api
     environment:
-      # CRITICAL: Tell the MVC app to talk to the "api" container, not localhost
       ApiSettings__BaseUrl: http://api:8080
       ASPNETCORE_ENVIRONMENT: Development
     ports:

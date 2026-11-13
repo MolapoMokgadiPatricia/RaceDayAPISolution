@@ -7,27 +7,38 @@
 <section class="hero">
     <div class="hero__stripes" aria-hidden="true"></div>
     <div class="container rd-container hero__inner">
-        <span class="pill pill--lime">Road running · Walking · Cycling</span>
-        <h1 class="hero__title">Your next <em>finish line</em> starts here.</h1>
+        <span class="pill pill--lime">Road Running · Walking · Cycling</span>
+        <h1 class="hero__title">YOUR GREATEST <em>ADVENTURE</em> STARTS HERE.</h1>
         <p class="hero__lead">
-            RaceDay brings South Africa's road events into one place. Organisers create events and capture results.
-            Participants find a race, enter in a few taps and track every finish.
+            From local fun runs to national ultra-marathons. Discover events, secure your spot in seconds, and track every step of your journey.
         </p>
         <div class="hero__actions">
             @if (role == "Participant")
             {
-                <a class="btn rd-btn rd-btn--primary rd-btn--lg" href="#events">Find a race</a>
-                <a class="btn rd-btn rd-btn--outline rd-btn--lg" asp-controller="Participant" asp-action="MyEvents">My events</a>
+                <a class="rd-btn rd-btn--primary rd-btn--lg" href="#events">
+                    <i class="bi bi-search"></i> Find a race
+                </a>
+                <a class="rd-btn rd-btn--outline rd-btn--lg" asp-controller="Participant" asp-action="MyEvents">
+                    <i class="bi bi-ticket-perforated"></i> My events
+                </a>
             }
             else if (role == "Organiser")
             {
-                <a class="btn rd-btn rd-btn--primary rd-btn--lg" asp-controller="Organiser" asp-action="Dashboard">Go to dashboard</a>
-                <a class="btn rd-btn rd-btn--outline rd-btn--lg" asp-controller="Organiser" asp-action="CreateEvent">Create an event</a>
+                <a class="rd-btn rd-btn--primary rd-btn--lg" asp-controller="Organiser" asp-action="Dashboard">
+                    <i class="bi bi-speedometer2"></i> Go to dashboard
+                </a>
+                <a class="rd-btn rd-btn--outline rd-btn--lg" asp-controller="Organiser" asp-action="CreateEvent">
+                    <i class="bi bi-plus-circle"></i> Create an event
+                </a>
             }
             else
             {
-                <a class="btn rd-btn rd-btn--primary rd-btn--lg" asp-controller="Account" asp-action="Register">Create a free account</a>
-                <a class="btn rd-btn rd-btn--outline rd-btn--lg" asp-controller="Account" asp-action="Login">Log in</a>
+                <a class="rd-btn rd-btn--primary rd-btn--lg" asp-controller="Account" asp-action="Register">
+                    <i class="bi bi-person-plus-fill"></i> Create a free account
+                </a>
+                <a class="rd-btn rd-btn--outline rd-btn--lg" asp-controller="Account" asp-action="Login">
+                    <i class="bi bi-box-arrow-in-right"></i> Log in
+                </a>
             }
         </div>
     </div>
