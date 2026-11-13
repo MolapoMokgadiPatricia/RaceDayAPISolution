@@ -1,18 +1,20 @@
-# Optional: run SQL Server, the API and the website together.
-#   1. Set SA_PASSWORD and AZURE_STORAGE_CONNECTION_STRING (PowerShell: $env:SA_PASSWORD="..."; $env:AZURE_STORAGE_CONNECTION_STRING="...")
-#   2. docker compose up --build
-# Website: http://localhost:5200     API / Swagger: http://localhost:5108/swagger
+version: '3.8'
+
 services:
+  # 1. The Database
   sql:
     image: mcr.microsoft.com/mssql/server:2022-latest
     environment:
       ACCEPT_EULA: "Y"
-      MSSQL_SA_PASSWORD: ${SA_PASSWORD:?Set SA_PASSWORD before running}
+      MSSQL_SA_PASSWORD: ${SA_PASSWORD}
     ports:
       - "1433:1433"
     volumes:
       - sqldata:/var/opt/mssql
+    networks:
+      - raceday-network
 
+  # 2. The API
   api:
     build:
       context: .
@@ -21,20 +23,34 @@ services:
       - sql
     restart: on-failure
     environment:
+      # Connection string to the SQL container
       ConnectionStrings__RaceDayConnection: "Server=sql,1433;Database=RaceDayDB;User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=True;"
-      ConnectionStrings__AzureBlobStorage: ${AZURE_STORAGE_CONNECTION_STRING:?Set AZURE_STORAGE_CONNECTION_STRING before running}
+      # Connection string for Azure Blob Storage (using local emulator string for now)
+      ConnectionStrings__AzureBlobStorage: ${AZURE_STORAGE_CONNECTION_STRING}
+      ASPNETCORE_ENVIRONMENT: Development
     ports:
       - "5108:8080"
+    networks:
+      - raceday-network
 
+  # 3. The MVC Web App
   web:
     build:
       context: ./RaceDayMVC
     depends_on:
       - api
     environment:
+      # CRITICAL: Tell the MVC app to talk to the "api" container, not localhost
       ApiSettings__BaseUrl: http://api:8080
+      ASPNETCORE_ENVIRONMENT: Development
     ports:
       - "5200:8080"
+    networks:
+      - raceday-network
 
 volumes:
   sqldata:
+
+networks:
+  raceday-network:
+    driver: bridge

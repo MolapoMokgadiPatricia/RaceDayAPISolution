@@ -1,28 +1,22 @@
-# syntax=docker/dockerfile:1
 
-# ---------- Build stage ----------
+# Stage 1: Build
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# Copy the project file first so the restore layer is cached between builds
-COPY RaceDayMVC.csproj ./
-RUN dotnet restore RaceDayMVC.csproj
+# 1. This must be RaceDayMVC.csproj
+COPY ["RaceDayMVC.csproj", "./"]
+RUN dotnet restore "RaceDayMVC.csproj"
 
-COPY . ./
-RUN dotnet publish RaceDayMVC.csproj -c Release -o /app/publish --no-restore /p:UseAppHost=false
+COPY . .
+RUN dotnet publish "RaceDayMVC.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
-# ---------- Runtime stage ----------
+# Stage 2: Runtime
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
-
-# Run as the non-root user that ships with the .NET 8 images
-USER $APP_UID
-
-COPY --from=build /app/publish ./
-
-ENV ASPNETCORE_URLS=http://+:8080 \
-    ASPNETCORE_ENVIRONMENT=Production \
-    ApiSettings__BaseUrl=http://host.docker.internal:5108
+COPY --from=build /app/publish .
 
 EXPOSE 8080
+ENV ASPNETCORE_URLS=http://+:8080
+
+# 2. This must be RaceDayMVC.dll (Notice the MVC)
 ENTRYPOINT ["dotnet", "RaceDayMVC.dll"]
