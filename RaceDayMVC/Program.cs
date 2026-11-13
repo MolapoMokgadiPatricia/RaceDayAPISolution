@@ -26,7 +26,6 @@ builder.Services.AddHttpClient<RaceDayApiClient>(client =>
     client.BaseAddress = new Uri(apiBaseUrl.TrimEnd('/') + "/");
     client.Timeout = TimeSpan.FromSeconds(30);
 })
-// Cookies are forwarded by hand so each website user keeps their own API session.
 .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { UseCookies = false });
 
 var app = builder.Build();
@@ -36,7 +35,6 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Home/Error");
 }
 
-app.UseStatusCodePagesWithReExecute("/Home/StatusPage", "?code={0}");
 
 if (!app.Configuration.GetValue<bool>("DOTNET_RUNNING_IN_CONTAINER"))
 {
