@@ -1,0 +1,150 @@
+@model EventDetailsVm
+@{
+    var e = Model.Event;
+    ViewData["Title"] = e.Name;
+    string? img = UiHelpers.SafeImage(e.BannerImageUrl);
+    string role = Context.Session.GetString(SessionKeys.Role) ?? string.Empty;
+    string returnUrl = Context.Request.Path + Context.Request.QueryString;
+}
+
+<section class="event-hero type-@e.EventType.ToLowerInvariant()">
+    @if (img != null)
+    {
+        <img class="event-hero__img" src="@img" alt="Banner for @e.Name" />
+        <div class="event-hero__shade" aria-hidden="true"></div>
+    }
+    else
+    {
+        <div class="hero__stripes" aria-hidden="true"></div>
+    }
+    <div class="container rd-container event-hero__inner">
+        <a class="back-link" asp-controller="Events" asp-action="Index">All events</a>
+        <span class="pill pill--lime">@UiHelpers.TypeLabel(e.EventType)</span>
+        <h1 class="event-hero__title">@e.Name</h1>
+        <p class="event-hero__sub">@e.EventDate.ToString("dddd, d MMMM yyyy") · @e.Location</p>
+    </div>
+</section>
+
+<section class="section section--tight">
+    <div class="container rd-container">
+        <div class="row g-4">
+            <div class="col-lg-7">
+                <div class="facts">
+                    <div class="fact"><span>Date</span><strong>@e.EventDate.ToString("d MMM yyyy")</strong></div>
+                    <div class="fact"><span>Location</span><strong>@e.Location</strong></div>
+                    <div class="fact"><span>Distance</span><strong>@UiHelpers.Km(e.DistanceKm)</strong></div>
+                    <div class="fact"><span>Type</span><strong>@UiHelpers.TypeLabel(e.EventType)</strong></div>
+                </div>
+
+                @if (!Model.IsPast)
+                {
+                    <p class="countdown" data-countdown="@e.EventDate.ToString("yyyy-MM-ddTHH:mm:ss")" aria-live="off"></p>
+                }
+
+                <h2 class="block-title">About this event</h2>
+                <p class="prose">@(string.IsNullOrWhiteSpace(e.Description) ? "The organiser has not added a description yet." : e.Description)</p>
+
+                <h2 class="block-title">Categories</h2>
+                @if (!Model.Categories.Any())
+                {
+                    <div class="empty-state empty-state--inline">
+                        <p>No categories have been set up for this event yet, so entries are not open.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table rd-table">
+                            <thead><tr><th>Category</th><th>Ages</th><th>Distance</th></tr></thead>
+                            <tbody>
+                                @foreach (var c in Model.Categories)
+                                {
+                                    <tr>
+                                        <td data-label="Category"><strong>@c.Name</strong></td>
+                                        <td data-label="Ages">@UiHelpers.AgeRange(c.MinAge, c.MaxAge)</td>
+                                        <td data-label="Distance">@UiHelpers.Km(c.DistanceKm)</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+
+            <div class="col-lg-5">
+                <aside class="enter-card">
+                    @if (role == "Participant")
+                    {
+                        if (Model.MyEnrolment != null)
+                        {
+                            <h2>You are entered</h2>
+                            <p>Category: <strong>@(Model.MyCategory?.Name ?? "-")</strong></p>
+                            <p>Status: <partial name="_StatusBadge" model="Model.MyEnrolment.Status" /></p>
+                            <a class="btn rd-btn rd-btn--primary w-100" asp-controller="Participant" asp-action="MyEvents">View my events</a>
+                        }
+                        else if (Model.IsPast)
+                        {
+                            <h2>This event has finished</h2>
+                            <p>Entries are closed. Browse upcoming events to find your next race.</p>
+                            <a class="btn rd-btn rd-btn--primary w-100" asp-controller="Events" asp-action="Index">Find another race</a>
+                        }
+                        else if (!Model.Categories.Any())
+                        {
+                            <h2>Entries not open yet</h2>
+                            <p>The organiser is still adding categories. Check back soon.</p>
+                        }
+                        else
+                        {
+                            <h2>Enter this event</h2>
+                            <p class="enter-card__hint">Choose the category that fits you.</p>
+                            <form asp-controller="Participant" asp-action="Enrol" method="post" data-enrol-form>
+                                <input type="hidden" name="eventId" value="@e.EventID" />
+                                <div class="category-options" role="radiogroup" aria-label="Category">
+                                    @foreach (var c in Model.Categories)
+                                    {
+                                        <label class="category-option">
+                                            <input type="radio" name="categoryId" value="@c.CategoryID" required />
+                                            <span class="category-option__body">
+                                                <strong>@c.Name</strong>
+                                                <small>Ages @UiHelpers.AgeRange(c.MinAge, c.MaxAge) · @UiHelpers.Km(c.DistanceKm)</small>
+                                            </span>
+                                        </label>
+                                    }
+                                </div>
+                                <button type="submit" class="btn rd-btn rd-btn--primary rd-btn--lg w-100" data-submit-label="Entering...">Enter event</button>
+                            </form>
+                        }
+                    }
+                    else if (role == "Organiser")
+                    {
+                        if (Model.IsOwner)
+                        {
+                            <h2>Your event</h2>
+                            <p>Manage everything for this event.</p>
+                            <div class="d-grid gap-2">
+                                <a class="btn rd-btn rd-btn--primary" asp-controller="Organiser" asp-action="EditEvent" asp-route-id="@e.EventID">Edit event</a>
+                                <a class="btn rd-btn rd-btn--outline-dark" asp-controller="Organiser" asp-action="Categories" asp-route-eventId="@e.EventID">Categories</a>
+                                <a class="btn rd-btn rd-btn--outline-dark" asp-controller="Organiser" asp-action="Enrolments" asp-route-eventId="@e.EventID">Enrolments</a>
+                                <a class="btn rd-btn rd-btn--outline-dark" asp-controller="Organiser" asp-action="Results" asp-route-eventId="@e.EventID">Results</a>
+                            </div>
+                        }
+                        else
+                        {
+                            <h2>Organiser view</h2>
+                            <p>This event belongs to another organiser. Only participants can enter events.</p>
+                        }
+                    }
+                    else
+                    {
+                        <h2>Ready to race?</h2>
+                        <p>Create a free participant account to enter this event and track your results.</p>
+                        <div class="d-grid gap-2">
+                            <a class="btn rd-btn rd-btn--primary rd-btn--lg" asp-controller="Account" asp-action="Register">Create a free account</a>
+                            <a class="btn rd-btn rd-btn--outline-dark" asp-controller="Account" asp-action="Login" asp-route-returnUrl="@returnUrl">Log in</a>
+                        </div>
+                    }
+                </aside>
+            </div>
+        </div>
+    </div>
+</section>

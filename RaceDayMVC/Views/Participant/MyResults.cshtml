@@ -1,0 +1,64 @@
+@model MyResultsVm
+@{
+    ViewData["Title"] = "My results";
+}
+<section class="page-head">
+    <div class="container rd-container">
+        <h1 class="page-title">My results</h1>
+        <p class="page-lead">Your race history across every completed event you entered.</p>
+    </div>
+</section>
+
+<section class="section section--tight">
+    <div class="container rd-container">
+        @if (!Model.Rows.Any())
+        {
+            <div class="empty-state">
+                <h3>No results yet</h3>
+                <p>Results appear here once an organiser publishes them after the event.</p>
+                <a class="btn rd-btn rd-btn--primary" asp-controller="Participant" asp-action="MyEvents">See my events</a>
+            </div>
+        }
+        else
+        {
+            <div class="stat-row">
+                <div class="stat"><span class="stat__num">@Model.Rows.Count</span><span class="stat__label">Races finished</span></div>
+                <div class="stat"><span class="stat__num">@(Model.BestPosition.HasValue ? UiHelpers.Ordinal(Model.BestPosition.Value) : "-")</span><span class="stat__label">Best position</span></div>
+                <div class="stat"><span class="stat__num">@UiHelpers.FormatTime(Model.FastestTime)</span><span class="stat__label">Fastest time</span></div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table rd-table">
+                    <thead>
+                        <tr><th>Event</th><th>Date</th><th>Category</th><th>Finish time</th><th>Position</th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var r in Model.Rows)
+                        {
+                            <tr>
+                                <td data-label="Event">
+                                    <a class="table-link" asp-controller="Events" asp-action="Details" asp-route-id="@r.EventID">@r.EventName</a>
+                                    <small class="d-block text-muted-rd">@r.Location</small>
+                                </td>
+                                <td data-label="Date">@r.EventDate.ToString("d MMM yyyy")</td>
+                                <td data-label="Category">@r.CategoryName</td>
+                                <td data-label="Finish time" class="time-cell">@UiHelpers.FormatTime(r.FinishTime)</td>
+                                <td data-label="Position">
+                                    @if (r.FinishPosition.HasValue)
+                                    {
+                                        <strong>@UiHelpers.Ordinal(r.FinishPosition.Value)</strong>
+                                        if (r.TotalFinishers > 0)
+                                        {
+                                            <span class="text-muted-rd"> out of @r.TotalFinishers finishers</span>
+                                        }
+                                    }
+                                    else { <span class="text-muted-rd">Not recorded</span> }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</section>

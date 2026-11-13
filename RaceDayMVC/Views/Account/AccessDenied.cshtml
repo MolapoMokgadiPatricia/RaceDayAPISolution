@@ -1,0 +1,18 @@
+@{
+    ViewData["Title"] = "Access denied";
+    string role = Context.Session.GetString(SessionKeys.Role) ?? string.Empty;
+}
+<section class="section section--center">
+    <div class="container rd-container">
+        <div class="error-panel">
+            <span class="error-panel__code">403</span>
+            <h1>That page is not for your account type</h1>
+            <p>
+                @if (role == "Organiser") { <text>Participant pages are only available to participants. Your organiser tools are on the dashboard.</text> }
+                else if (role == "Participant") { <text>Organiser pages are only available to event organisers. You can still browse and enter events.</text> }
+                else { <text>Log in with the right account to open that page.</text> }
+            </p>
+            <a class="btn rd-btn rd-btn--primary" asp-controller="Home" asp-action="Index">Take me home</a>
+        </div>
+    </div>
+</section>

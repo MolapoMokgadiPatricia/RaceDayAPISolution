@@ -1,0 +1,93 @@
+@model CategoriesVm
+@{
+    ViewData["Title"] = "Categories";
+}
+<section class="page-head">
+    <div class="container rd-container">
+        <h1 class="page-title">Categories</h1>
+        <p class="page-lead">Define the age or distance groups participants can choose when they enter.</p>
+    </div>
+</section>
+
+<section class="section section--tight">
+    <div class="container rd-container">
+        @if (!Model.Events.Any() || Model.Selected == null)
+        {
+            <partial name="_NoEvents" />
+        }
+        else
+        {
+            <partial name="_EventSelector" model='(Model.Events, Model.Selected, "Categories")' />
+
+            <div class="row g-4 mt-1">
+                <div class="col-lg-7">
+                    <h2 class="block-title block-title--first">@Model.Selected.Name</h2>
+                    @if (!Model.Categories.Any())
+                    {
+                        <div class="empty-state empty-state--inline"><p>No categories yet. Add the first one using the form.</p></div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table rd-table">
+                                <thead><tr><th>Category</th><th>Ages</th><th>Distance</th><th class="text-end">Actions</th></tr></thead>
+                                <tbody>
+                                    @foreach (var c in Model.Categories)
+                                    {
+                                        <tr>
+                                            <td data-label="Category"><strong>@c.Name</strong></td>
+                                            <td data-label="Ages">@UiHelpers.AgeRange(c.MinAge, c.MaxAge)</td>
+                                            <td data-label="Distance">@UiHelpers.Km(c.DistanceKm)</td>
+                                            <td data-label="Actions" class="text-end actions">
+                                                <button type="button" class="btn rd-btn rd-btn--outline-dark rd-btn--sm"
+                                                        data-edit-category
+                                                        data-id="@c.CategoryID" data-name="@c.Name" data-min="@c.MinAge" data-max="@c.MaxAge"
+                                                        data-distance="@c.DistanceKm.ToString(System.Globalization.CultureInfo.InvariantCulture)">Edit</button>
+                                                <form asp-action="DeleteCategory" asp-route-id="@c.CategoryID" asp-route-eventId="@Model.Selected.EventID" method="post" class="d-inline js-confirm"
+                                                      data-confirm-title="Delete this category?" data-confirm-message="&quot;@c.Name&quot; will be removed. Categories that already have enrolments cannot be deleted." data-confirm-button="Delete category">
+                                                    <button type="submit" class="btn rd-btn rd-btn--outline-danger rd-btn--sm">Delete</button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+
+                <div class="col-lg-5">
+                    <div class="panel" id="categoryPanel">
+                        <h2 class="panel__title" id="categoryHeading">Add a category</h2>
+                        <form asp-action="SaveCategory" method="post" data-validate id="categoryForm">
+                            <input type="hidden" name="EventId" value="@Model.Selected.EventID" />
+                            <input type="hidden" name="CategoryId" id="CategoryId" value="0" />
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <label for="catName" class="form-label rd-label">Name</label>
+                                    <input id="catName" name="Name" class="form-control rd-input" maxlength="100" required placeholder="e.g. Senior, Under 20, 21 km" />
+                                </div>
+                                <div class="col-6">
+                                    <label for="catMin" class="form-label rd-label">Minimum age</label>
+                                    <input id="catMin" name="MinAge" type="number" min="0" max="150" class="form-control rd-input" required />
+                                </div>
+                                <div class="col-6">
+                                    <label for="catMax" class="form-label rd-label">Maximum age</label>
+                                    <input id="catMax" name="MaxAge" type="number" min="0" max="150" class="form-control rd-input" required />
+                                </div>
+                                <div class="col-12">
+                                    <label for="catDistance" class="form-label rd-label">Distance (km)</label>
+                                    <input id="catDistance" name="DistanceKm" type="number" step="0.01" min="0.01" max="999.99" class="form-control rd-input" value="@Model.Selected.DistanceKm.ToString(System.Globalization.CultureInfo.InvariantCulture)" required />
+                                </div>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn rd-btn rd-btn--primary" id="categorySubmit" data-submit-label="Saving...">Add category</button>
+                                <button type="button" class="btn rd-btn rd-btn--outline-dark" id="categoryReset" hidden>Cancel edit</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</section>

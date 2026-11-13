@@ -1,0 +1,67 @@
+@model EventListVm
+@{
+    ViewData["Title"] = "Your next finish line";
+    string role = Context.Session.GetString(SessionKeys.Role) ?? string.Empty;
+}
+
+<section class="hero">
+    <div class="hero__stripes" aria-hidden="true"></div>
+    <div class="container rd-container hero__inner">
+        <span class="pill pill--lime">Road running · Walking · Cycling</span>
+        <h1 class="hero__title">Your next <em>finish line</em> starts here.</h1>
+        <p class="hero__lead">
+            RaceDay brings South Africa's road events into one place. Organisers create events and capture results.
+            Participants find a race, enter in a few taps and track every finish.
+        </p>
+        <div class="hero__actions">
+            @if (role == "Participant")
+            {
+                <a class="btn rd-btn rd-btn--primary rd-btn--lg" href="#events">Find a race</a>
+                <a class="btn rd-btn rd-btn--outline rd-btn--lg" asp-controller="Participant" asp-action="MyEvents">My events</a>
+            }
+            else if (role == "Organiser")
+            {
+                <a class="btn rd-btn rd-btn--primary rd-btn--lg" asp-controller="Organiser" asp-action="Dashboard">Go to dashboard</a>
+                <a class="btn rd-btn rd-btn--outline rd-btn--lg" asp-controller="Organiser" asp-action="CreateEvent">Create an event</a>
+            }
+            else
+            {
+                <a class="btn rd-btn rd-btn--primary rd-btn--lg" asp-controller="Account" asp-action="Register">Create a free account</a>
+                <a class="btn rd-btn rd-btn--outline rd-btn--lg" asp-controller="Account" asp-action="Login">Log in</a>
+            }
+        </div>
+    </div>
+</section>
+
+<section class="section" id="events">
+    <div class="container rd-container">
+        <div class="section__head">
+            <h2 class="section__title">Upcoming events</h2>
+            <p class="section__lead">Filter by distance, type or town and open any race to see its categories.</p>
+        </div>
+        <partial name="_EventBrowser" model="Model" />
+    </div>
+</section>
+
+<section class="section section--dark">
+    <div class="container rd-container">
+        <h2 class="section__title section__title--light">How RaceDay works</h2>
+        <ol class="steps">
+            <li class="step">
+                <span class="step__num">1</span>
+                <h3>Pick a race</h3>
+                <p>Browse road runs, walks and cycle tours across the country and compare distances and categories.</p>
+            </li>
+            <li class="step">
+                <span class="step__num">2</span>
+                <h3>Enter in a few taps</h3>
+                <p>Choose the category that suits your age or distance. The organiser confirms your place.</p>
+            </li>
+            <li class="step">
+                <span class="step__num">3</span>
+                <h3>Track every finish</h3>
+                <p>Organisers publish finish times and positions, and they appear in your personal race history.</p>
+            </li>
+        </ol>
+    </div>
+</section>

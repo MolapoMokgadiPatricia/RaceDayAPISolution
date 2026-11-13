@@ -1,0 +1,48 @@
+@model LoginVm
+@{
+    ViewData["Title"] = "Log in";
+}
+<section class="auth">
+    <div class="auth__side" aria-hidden="true">
+        <div class="hero__stripes"></div>
+        <div class="auth__side-text">
+            <span class="pill pill--lime">Welcome back</span>
+            <p class="auth__big">Every finish starts with a sign-in.</p>
+        </div>
+    </div>
+    <div class="auth__main">
+        <div class="auth__card">
+            <h1>Log in</h1>
+            <p class="auth__sub">Use the email and password you registered with.</p>
+
+            @if (ViewData["Info"] is string info)
+            {
+                <div class="rd-alert rd-alert--warning" role="status"><span>@info</span></div>
+            }
+
+            <form asp-action="Login" method="post" class="needs-validation" data-validate>
+                <input type="hidden" asp-for="ReturnUrl" />
+                <div asp-validation-summary="ModelOnly" class="form-error-box"></div>
+
+                <div class="mb-3">
+                    <label asp-for="Email" class="form-label rd-label">Email address</label>
+                    <input asp-for="Email" type="email" class="form-control rd-input" autocomplete="email" required autofocus />
+                    <span asp-validation-for="Email" class="field-error"></span>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="Password" class="form-label rd-label">Password</label>
+                    <div class="password-field">
+                        <input asp-for="Password" type="password" class="form-control rd-input" autocomplete="current-password" required />
+                        <button type="button" class="password-toggle" data-toggle-password aria-label="Show password">Show</button>
+                    </div>
+                    <span asp-validation-for="Password" class="field-error"></span>
+                </div>
+
+                <button type="submit" class="btn rd-btn rd-btn--primary rd-btn--lg w-100" data-submit-label="Logging in...">Log in</button>
+            </form>
+
+            <p class="auth__switch">New to RaceDay? <a asp-action="Register">Create a free account</a></p>
+        </div>
+    </div>
+</section>

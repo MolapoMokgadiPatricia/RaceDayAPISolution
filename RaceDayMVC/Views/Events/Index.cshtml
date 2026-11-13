@@ -1,0 +1,15 @@
+@model EventListVm
+@{
+    ViewData["Title"] = "Events";
+}
+<section class="page-head">
+    <div class="container rd-container">
+        <h1 class="page-title">Events</h1>
+        <p class="page-lead">Every road run, walk and cycle on RaceDay. Open an event to see its categories and enter.</p>
+    </div>
+</section>
+<section class="section section--tight">
+    <div class="container rd-container">
+        <partial name="_EventBrowser" model="Model" />
+    </div>
+</section>

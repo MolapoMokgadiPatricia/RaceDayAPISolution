@@ -1,0 +1,61 @@
+name: RaceDay CI
+
+on:
+  push:
+    branches: [ "main", "master", "part-2", "part-3" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore RaceDayAPI.sln
+
+      - name: Build solution (API, tests and MVC)
+        run: dotnet build RaceDayAPI.sln --configuration Release --no-restore
+
+      - name: Run unit tests
+        run: dotnet test RaceDayAPI.Tests/RaceDayAPI.Tests.csproj --configuration Release --no-build --verbosity normal
+
+  docker-build:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build MVC Docker image
+        run: docker build -t raceday-mvc ./RaceDayMVC
+
+  validate-docs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify /docs folder exists
+        run: |
+          if [ ! -d "docs" ]; then
+            echo "ERROR: /docs folder is missing."
+            exit 1
+          fi
+          echo "/docs folder found."
+
+      - name: Verify required planning documents
+        run: |
+          test -f docs/*.sql  || (echo "Missing SQL script" && exit 1)
+          test -f docs/*.png  || test -f docs/*.pdf || (echo "Missing ERD" && exit 1)
+          echo "Planning documents verified."

@@ -1,0 +1,83 @@
+@model RegisterVm
+@{
+    ViewData["Title"] = "Create your account";
+}
+<section class="auth">
+    <div class="auth__side" aria-hidden="true">
+        <div class="hero__stripes"></div>
+        <div class="auth__side-text">
+            <span class="pill pill--lime">Join RaceDay</span>
+            <p class="auth__big">Find a race. Enter in a few taps. Track every finish.</p>
+        </div>
+    </div>
+    <div class="auth__main">
+        <div class="auth__card auth__card--wide">
+            <h1>Create your account</h1>
+            <p class="auth__sub">It takes less than a minute.</p>
+
+            <form asp-action="Register" method="post" data-validate>
+                <div asp-validation-summary="ModelOnly" class="form-error-box"></div>
+
+                <fieldset class="role-picker">
+                    <legend class="rd-label">I want to</legend>
+                    <label class="role-card">
+                        <input type="radio" asp-for="Role" value="Participant" />
+                        <span class="role-card__body">
+                            <strong>Enter races</strong>
+                            <small>Participant: browse events, enter, and track results</small>
+                        </span>
+                    </label>
+                    <label class="role-card">
+                        <input type="radio" asp-for="Role" value="Organiser" />
+                        <span class="role-card__body">
+                            <strong>Organise events</strong>
+                            <small>Organiser: create events, manage entries, publish results</small>
+                        </span>
+                    </label>
+                    <span asp-validation-for="Role" class="field-error"></span>
+                </fieldset>
+
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <label asp-for="FirstName" class="form-label rd-label">First name</label>
+                        <input asp-for="FirstName" class="form-control rd-input" maxlength="50" autocomplete="given-name" required />
+                        <span asp-validation-for="FirstName" class="field-error"></span>
+                    </div>
+                    <div class="col-sm-6">
+                        <label asp-for="LastName" class="form-label rd-label">Last name</label>
+                        <input asp-for="LastName" class="form-control rd-input" maxlength="50" autocomplete="family-name" required />
+                        <span asp-validation-for="LastName" class="field-error"></span>
+                    </div>
+                    <div class="col-sm-7">
+                        <label asp-for="Email" class="form-label rd-label">Email address</label>
+                        <input asp-for="Email" type="email" class="form-control rd-input" maxlength="100" autocomplete="email" required />
+                        <span asp-validation-for="Email" class="field-error"></span>
+                    </div>
+                    <div class="col-sm-5">
+                        <label asp-for="PhoneNumber" class="form-label rd-label">Phone (optional)</label>
+                        <input asp-for="PhoneNumber" type="tel" class="form-control rd-input" maxlength="20" autocomplete="tel" />
+                        <span asp-validation-for="PhoneNumber" class="field-error"></span>
+                    </div>
+                    <div class="col-sm-6">
+                        <label asp-for="Password" class="form-label rd-label">Password</label>
+                        <div class="password-field">
+                            <input asp-for="Password" type="password" class="form-control rd-input" minlength="8" autocomplete="new-password" required data-strength-target="#strength" />
+                            <button type="button" class="password-toggle" data-toggle-password aria-label="Show password">Show</button>
+                        </div>
+                        <div class="strength" id="strength" aria-live="polite"><span class="strength__bar"></span><small class="strength__text">At least 8 characters</small></div>
+                        <span asp-validation-for="Password" class="field-error"></span>
+                    </div>
+                    <div class="col-sm-6">
+                        <label asp-for="ConfirmPassword" class="form-label rd-label">Confirm password</label>
+                        <input asp-for="ConfirmPassword" type="password" class="form-control rd-input" autocomplete="new-password" required data-match="#Password" />
+                        <span asp-validation-for="ConfirmPassword" class="field-error"></span>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn rd-btn rd-btn--primary rd-btn--lg w-100 mt-4" data-submit-label="Creating account...">Create account</button>
+            </form>
+
+            <p class="auth__switch">Already have an account? <a asp-action="Login">Log in</a></p>
+        </div>
+    </div>
+</section>

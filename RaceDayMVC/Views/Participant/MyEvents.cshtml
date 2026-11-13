@@ -1,0 +1,74 @@
+@model List<MyEnrolmentRow>
+@{
+    ViewData["Title"] = "My events";
+}
+<section class="page-head">
+    <div class="container rd-container">
+        <h1 class="page-title">My events</h1>
+        <p class="page-lead">Every race you have entered and where each entry stands.</p>
+    </div>
+</section>
+
+<section class="section section--tight">
+    <div class="container rd-container">
+        @if (!Model.Any())
+        {
+            <div class="empty-state">
+                <h3>You have not entered any events yet</h3>
+                <p>Pick a race, choose a category and it will show up here.</p>
+                <a class="btn rd-btn rd-btn--primary" asp-controller="Events" asp-action="Index">Find a race</a>
+            </div>
+        }
+        else
+        {
+            <div class="legend" aria-label="Status colours">
+                <span class="status-badge status-confirmed">Confirmed</span> the organiser has approved your entry
+                <span class="status-badge status-pending">Pending</span> waiting for the organiser
+                <span class="status-badge status-rejected">Rejected</span>
+                <span class="status-badge status-cancelled">Cancelled</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table rd-table">
+                    <thead>
+                        <tr><th>Event</th><th>Date</th><th>Category</th><th>Entered on</th><th>Status</th><th class="text-end">Actions</th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var row in Model)
+                        {
+                            var ev = row.Event;
+                            bool past = ev != null && ev.EventDate.Date < DateTime.Today;
+                            bool canCancel = !past && !row.HasResult && row.Enrolment.Status != "Cancelled";
+                            <tr>
+                                <td data-label="Event">
+                                    @if (ev != null)
+                                    {
+                                        <a class="table-link" asp-controller="Events" asp-action="Details" asp-route-id="@ev.EventID">@ev.Name</a>
+                                        <small class="d-block text-muted-rd">@ev.Location · @UiHelpers.Km(ev.DistanceKm)</small>
+                                    }
+                                    else { <span>Event removed</span> }
+                                </td>
+                                <td data-label="Date">@(ev?.EventDate.ToString("d MMM yyyy") ?? "-")</td>
+                                <td data-label="Category">@(row.Category?.Name ?? "-")</td>
+                                <td data-label="Entered on">@row.Enrolment.EnrolmentDate.ToLocalTime().ToString("d MMM yyyy")</td>
+                                <td data-label="Status"><partial name="_StatusBadge" model="row.Enrolment.Status" /></td>
+                                <td data-label="Actions" class="text-end">
+                                    @if (row.HasResult)
+                                    {
+                                        <a class="btn rd-btn rd-btn--outline-dark rd-btn--sm" asp-controller="Participant" asp-action="MyResults">See result</a>
+                                    }
+                                    else if (canCancel)
+                                    {
+                                        <form asp-action="Cancel" asp-route-id="@row.Enrolment.EnrolmentID" method="post" class="d-inline js-confirm"
+                                              data-confirm-title="Cancel your entry?" data-confirm-message="You will lose your place in @(ev?.Name ?? "this event"). You can enter again later if entries are still open." data-confirm-button="Cancel entry">
+                                            <button type="submit" class="btn rd-btn rd-btn--outline-danger rd-btn--sm">Cancel entry</button>
+                                        </form>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</section>

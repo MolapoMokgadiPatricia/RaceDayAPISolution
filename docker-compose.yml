@@ -1,0 +1,40 @@
+# Optional: run SQL Server, the API and the website together.
+#   1. Set SA_PASSWORD and AZURE_STORAGE_CONNECTION_STRING (PowerShell: $env:SA_PASSWORD="..."; $env:AZURE_STORAGE_CONNECTION_STRING="...")
+#   2. docker compose up --build
+# Website: http://localhost:5200     API / Swagger: http://localhost:5108/swagger
+services:
+  sql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${SA_PASSWORD:?Set SA_PASSWORD before running}
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqldata:/var/opt/mssql
+
+  api:
+    build:
+      context: .
+      dockerfile: RaceDayAPI.Dockerfile
+    depends_on:
+      - sql
+    restart: on-failure
+    environment:
+      ConnectionStrings__RaceDayConnection: "Server=sql,1433;Database=RaceDayDB;User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=True;"
+      ConnectionStrings__AzureBlobStorage: ${AZURE_STORAGE_CONNECTION_STRING:?Set AZURE_STORAGE_CONNECTION_STRING before running}
+    ports:
+      - "5108:8080"
+
+  web:
+    build:
+      context: ./RaceDayMVC
+    depends_on:
+      - api
+    environment:
+      ApiSettings__BaseUrl: http://api:8080
+    ports:
+      - "5200:8080"
+
+volumes:
+  sqldata:

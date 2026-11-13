@@ -1,0 +1,70 @@
+@model EnrolmentsVm
+@{
+    ViewData["Title"] = "Enrolments";
+    var statuses = new[] { "Pending", "Approved", "Rejected", "Cancelled" };
+}
+<section class="page-head">
+    <div class="container rd-container">
+        <h1 class="page-title">Enrolments</h1>
+        <p class="page-lead">See who has entered each event and confirm or decline their place.</p>
+    </div>
+</section>
+
+<section class="section section--tight">
+    <div class="container rd-container">
+        @if (!Model.Events.Any() || Model.Selected == null)
+        {
+            <partial name="_NoEvents" />
+        }
+        else
+        {
+            <partial name="_EventSelector" model='(Model.Events, Model.Selected, "Enrolments")' />
+
+            <div class="stat-row stat-row--compact">
+                <div class="stat"><span class="stat__num">@Model.Rows.Count</span><span class="stat__label">Total</span></div>
+                <div class="stat"><span class="stat__num">@Model.Rows.Count(r => r.Enrolment.Status == "Approved")</span><span class="stat__label">Confirmed</span></div>
+                <div class="stat"><span class="stat__num">@Model.Rows.Count(r => (r.Enrolment.Status ?? "Pending") == "Pending")</span><span class="stat__label">Pending</span></div>
+            </div>
+
+            @if (!Model.Rows.Any())
+            {
+                <div class="empty-state empty-state--inline"><p>Nobody has entered <strong>@Model.Selected.Name</strong> yet.</p></div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table rd-table">
+                        <thead><tr><th>Participant</th><th>Category</th><th>Entered on</th><th>Status</th><th>Change status</th></tr></thead>
+                        <tbody>
+                            @foreach (var r in Model.Rows)
+                            {
+                                <tr>
+                                    <td data-label="Participant">
+                                        <strong>@r.ParticipantName</strong>
+                                        <small class="d-block text-muted-rd">@r.Email</small>
+                                    </td>
+                                    <td data-label="Category">@r.CategoryName</td>
+                                    <td data-label="Entered on">@r.Enrolment.EnrolmentDate.ToLocalTime().ToString("d MMM yyyy")</td>
+                                    <td data-label="Status"><partial name="_StatusBadge" model="r.Enrolment.Status" /></td>
+                                    <td data-label="Change status">
+                                        <form asp-action="UpdateEnrolmentStatus" method="post" class="status-form">
+                                            <input type="hidden" name="id" value="@r.Enrolment.EnrolmentID" />
+                                            <input type="hidden" name="eventId" value="@Model.Selected.EventID" />
+                                            <select name="status" class="form-select rd-input rd-input--sm" aria-label="Status for @r.ParticipantName">
+                                                @foreach (var s in statuses)
+                                                {
+                                                    <option value="@s" selected="@((r.Enrolment.Status ?? "Pending") == s)">@UiHelpers.StatusLabel(s)</option>
+                                                }
+                                            </select>
+                                            <button type="submit" class="btn rd-btn rd-btn--primary rd-btn--sm" data-submit-label="Saving...">Update</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        }
+    </div>
+</section>

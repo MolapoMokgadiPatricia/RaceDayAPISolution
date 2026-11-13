@@ -1,0 +1,49 @@
+@model EventCardVm
+@{
+    var e = Model.Event;
+    string? img = UiHelpers.SafeImage(e.BannerImageUrl);
+    string type = e.EventType.ToLowerInvariant();
+}
+<article class="event-card @(Model.IsPast ? "is-past" : "")"
+         data-event-card
+         data-name="@e.Name.ToLowerInvariant()"
+         data-location="@e.Location.ToLowerInvariant()"
+         data-type="@type"
+         data-distance="@e.DistanceKm.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+         data-date="@e.EventDate.ToString("yyyy-MM-dd")"
+         data-past="@(Model.IsPast ? "1" : "0")">
+    <a class="event-card__media type-@type" asp-controller="Events" asp-action="Details" asp-route-id="@e.EventID" tabindex="-1" aria-hidden="true">
+        @if (img != null)
+        {
+            <img src="@img" alt="" loading="lazy" />
+        }
+        else
+        {
+            <span class="event-card__placeholder">@UiHelpers.TypeLabel(e.EventType)</span>
+        }
+        <span class="event-card__type">@UiHelpers.TypeLabel(e.EventType)</span>
+        @if (Model.IsPast)
+        {
+            <span class="event-card__past">Finished</span>
+        }
+    </a>
+    <div class="event-card__body">
+        <div class="event-card__date" aria-label="@e.EventDate.ToString("d MMMM yyyy")">
+            <span class="day">@e.EventDate.ToString("dd")</span>
+            <span class="mon">@e.EventDate.ToString("MMM")</span>
+        </div>
+        <div class="event-card__info">
+            <h3 class="event-card__title"><a asp-controller="Events" asp-action="Details" asp-route-id="@e.EventID">@e.Name</a></h3>
+            <p class="event-card__location">@e.Location</p>
+            <ul class="event-card__meta">
+                <li><strong>@UiHelpers.Km(e.DistanceKm)</strong></li>
+                <li>@Model.CategoryCount @(Model.CategoryCount == 1 ? "category" : "categories")</li>
+            </ul>
+        </div>
+    </div>
+    <div class="event-card__footer">
+        <a class="btn rd-btn rd-btn--primary rd-btn--sm" asp-controller="Events" asp-action="Details" asp-route-id="@e.EventID">
+            @(Model.IsPast ? "View event" : "View and enter")
+        </a>
+    </div>
+</article>

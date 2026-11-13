@@ -1,0 +1,100 @@
+@model ProfileVm
+@{
+    ViewData["Title"] = "Your profile";
+    bool isParticipant = Model.Role == "Participant";
+    string? picture = UiHelpers.SafeImage(Model.ProfilePictureUrl);
+}
+<section class="page-head">
+    <div class="container rd-container">
+        <h1 class="page-title">Your profile</h1>
+        <p class="page-lead">Keep your details up to date so organisers can reach you.</p>
+    </div>
+</section>
+
+<section class="section section--tight">
+    <div class="container rd-container">
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="panel text-center">
+                    <div class="profile-photo">
+                        @if (picture != null)
+                        {
+                            <img src="@picture" alt="Profile picture of @Model.FirstName @Model.LastName" id="profilePreview" />
+                        }
+                        else
+                        {
+                            <span class="profile-photo__initials" id="profileInitials">@UiHelpers.Initials(Model.FirstName + " " + Model.LastName)</span>
+                            <img src="" alt="" id="profilePreview" hidden />
+                        }
+                    </div>
+                    <h2 class="panel__name">@Model.FirstName @Model.LastName</h2>
+                    <p class="panel__meta">@Model.Role · member since @Model.MemberSince.ToString("MMM yyyy")</p>
+
+                    @if (isParticipant)
+                    {
+                        <form asp-action="UploadPicture" method="post" enctype="multipart/form-data" class="mt-3">
+                            <label for="picture" class="btn rd-btn rd-btn--outline-dark w-100 mb-2">Choose a new photo</label>
+                            <input type="file" id="picture" name="picture" class="visually-hidden" accept="image/png,image/jpeg,image/webp,image/gif" data-image-input data-preview="#profilePreview" data-hide="#profileInitials" data-max-mb="5" />
+                            <p class="file-note" data-file-note>JPG, PNG, WEBP or GIF, up to 5 MB.</p>
+                            <button type="submit" class="btn rd-btn rd-btn--primary w-100" data-submit-label="Uploading..." disabled data-needs-file="#picture">Upload photo</button>
+                        </form>
+                    }
+                </div>
+            </div>
+
+            <div class="col-lg-8">
+                <div class="panel">
+                    <h2 class="panel__title">Personal details</h2>
+                    <form asp-action="Profile" method="post" data-validate>
+                        <div asp-validation-summary="ModelOnly" class="form-error-box"></div>
+                        <div class="row g-3">
+                            <div class="col-sm-6">
+                                <label asp-for="FirstName" class="form-label rd-label">First name</label>
+                                <input asp-for="FirstName" class="form-control rd-input" maxlength="50" required />
+                                <span asp-validation-for="FirstName" class="field-error"></span>
+                            </div>
+                            <div class="col-sm-6">
+                                <label asp-for="LastName" class="form-label rd-label">Last name</label>
+                                <input asp-for="LastName" class="form-control rd-input" maxlength="50" required />
+                                <span asp-validation-for="LastName" class="field-error"></span>
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="form-label rd-label" for="emailShown">Email address</label>
+                                <input id="emailShown" class="form-control rd-input" value="@Model.Email" disabled />
+                                <small class="field-hint">Your email is your login and cannot be changed here.</small>
+                            </div>
+                            <div class="col-sm-6">
+                                <label asp-for="PhoneNumber" class="form-label rd-label">Phone number</label>
+                                <input asp-for="PhoneNumber" type="tel" class="form-control rd-input" maxlength="20" />
+                                <span asp-validation-for="PhoneNumber" class="field-error"></span>
+                            </div>
+
+                            @if (isParticipant)
+                            {
+                                <div class="col-sm-6">
+                                    <label asp-for="DateOfBirth" class="form-label rd-label">Date of birth</label>
+                                    <input asp-for="DateOfBirth" type="date" class="form-control rd-input" max="@DateTime.Today.ToString("yyyy-MM-dd")" value="@(Model.DateOfBirth?.ToString("yyyy-MM-dd"))" />
+                                    <span asp-validation-for="DateOfBirth" class="field-error"></span>
+                                </div>
+                                <div class="col-12"><h3 class="panel__sub">Emergency contact</h3></div>
+                                <div class="col-sm-6">
+                                    <label asp-for="EmergencyContactName" class="form-label rd-label">Contact name</label>
+                                    <input asp-for="EmergencyContactName" class="form-control rd-input" maxlength="100" />
+                                    <span asp-validation-for="EmergencyContactName" class="field-error"></span>
+                                </div>
+                                <div class="col-sm-6">
+                                    <label asp-for="EmergencyContactPhone" class="form-label rd-label">Contact phone</label>
+                                    <input asp-for="EmergencyContactPhone" type="tel" class="form-control rd-input" maxlength="20" />
+                                    <span asp-validation-for="EmergencyContactPhone" class="field-error"></span>
+                                </div>
+                            }
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn rd-btn rd-btn--primary" data-submit-label="Saving...">Save changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

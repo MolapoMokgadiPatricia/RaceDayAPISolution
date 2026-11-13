@@ -1,0 +1,74 @@
+@model DashboardVm
+@{
+    ViewData["Title"] = "Dashboard";
+}
+<section class="page-head">
+    <div class="container rd-container d-flex flex-wrap justify-content-between align-items-end gap-3">
+        <div>
+            <h1 class="page-title">Hello, @Model.Name.Split(' ')[0]</h1>
+            <p class="page-lead">Here is where your events stand today.</p>
+        </div>
+        <a class="btn rd-btn rd-btn--primary rd-btn--lg" asp-action="CreateEvent">Create an event</a>
+    </div>
+</section>
+
+<section class="section section--tight">
+    <div class="container rd-container">
+        <div class="stat-row">
+            <div class="stat"><span class="stat__num">@Model.Rows.Count</span><span class="stat__label">Events created</span></div>
+            <div class="stat"><span class="stat__num">@Model.UpcomingEvents</span><span class="stat__label">Upcoming</span></div>
+            <div class="stat"><span class="stat__num">@Model.TotalEnrolments</span><span class="stat__label">Total enrolments</span></div>
+            <div class="stat stat--alert"><span class="stat__num">@Model.PendingEnrolments</span><span class="stat__label">Waiting for confirmation</span></div>
+        </div>
+
+        @if (Model.NextEvent != null)
+        {
+            <div class="next-event">
+                <div>
+                    <span class="pill pill--lime">Next up</span>
+                    <h2>@Model.NextEvent.Name</h2>
+                    <p>@Model.NextEvent.EventDate.ToString("dddd, d MMMM yyyy") · @Model.NextEvent.Location</p>
+                </div>
+                <div class="next-event__side">
+                    <p class="countdown countdown--big" data-countdown="@Model.NextEvent.EventDate.ToString("yyyy-MM-ddTHH:mm:ss")"></p>
+                    <a class="btn rd-btn rd-btn--primary" asp-action="Enrolments" asp-route-eventId="@Model.NextEvent.EventID">View enrolments</a>
+                </div>
+            </div>
+        }
+
+        <h2 class="block-title">Your events</h2>
+        @if (!Model.Rows.Any())
+        {
+            <partial name="_NoEvents" />
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table rd-table">
+                    <thead>
+                        <tr><th>Event</th><th>Date</th><th>Categories</th><th>Enrolments</th><th>Pending</th><th class="text-end">Manage</th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var r in Model.Rows)
+                        {
+                            <tr class="@(r.IsPast ? "row-past" : "")">
+                                <td data-label="Event">
+                                    <a class="table-link" asp-controller="Events" asp-action="Details" asp-route-id="@r.Event.EventID">@r.Event.Name</a>
+                                    <small class="d-block text-muted-rd">@r.Event.Location · @UiHelpers.Km(r.Event.DistanceKm)</small>
+                                </td>
+                                <td data-label="Date">@r.Event.EventDate.ToString("d MMM yyyy")@(r.IsPast ? " (finished)" : "")</td>
+                                <td data-label="Categories">@r.Categories</td>
+                                <td data-label="Enrolments"><strong>@r.Enrolments</strong></td>
+                                <td data-label="Pending">@if (r.Pending > 0) { <span class="status-badge status-pending">@r.Pending</span> } else { <span class="text-muted-rd">0</span> }</td>
+                                <td data-label="Manage" class="text-end">
+                                    <a class="btn rd-btn rd-btn--outline-dark rd-btn--sm" asp-action="Enrolments" asp-route-eventId="@r.Event.EventID">Enrolments</a>
+                                    <a class="btn rd-btn rd-btn--outline-dark rd-btn--sm" asp-action="Results" asp-route-eventId="@r.Event.EventID">Results</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</section>
