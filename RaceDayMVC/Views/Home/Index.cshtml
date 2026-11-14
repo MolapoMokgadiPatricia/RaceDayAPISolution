@@ -1,44 +1,36 @@
 @model EventListVm
+@inject IWebHostEnvironment Env
 @{
     ViewData["Title"] = "Your next finish line";
     string role = Context.Session.GetString(SessionKeys.Role) ?? string.Empty;
+    bool hasPhoto = !string.IsNullOrEmpty(Env.WebRootPath) && System.IO.File.Exists(System.IO.Path.Combine(Env.WebRootPath, "img", "images.jpg"));
 }
 
 <section class="hero">
-    <div class="hero__stripes" aria-hidden="true"></div>
+    @if (hasPhoto)
+    {
+        <div class="hero__photo" style="background-image: url('@Url.Content("~/img/images.jpg")')" aria-hidden="true"></div>
+    }
+    <div class="hero__shape hero__shape--band" aria-hidden="true"></div>
+    <div class="hero__shape hero__shape--cream" aria-hidden="true"></div>
     <div class="container rd-container hero__inner">
-        <span class="pill pill--lime">Road Running · Walking · Cycling</span>
-        <h1 class="hero__title">YOUR GREATEST <em>ADVENTURE</em> STARTS HERE.</h1>
-        <p class="hero__lead">
-            From local fun runs to national ultra-marathons. Discover events, secure your spot in seconds, and track every step of your journey.
-        </p>
+        <h1 class="hero__title">Find your next <em>finish line</em></h1>
+        <p class="hero__lead">RaceDay brings South Africa's road running, walking and cycling events into one place.</p>
         <div class="hero__actions">
             @if (role == "Participant")
             {
-                <a class="rd-btn rd-btn--primary rd-btn--lg" href="#events">
-                    <i class="bi bi-search"></i> Find a race
-                </a>
-                <a class="rd-btn rd-btn--outline rd-btn--lg" asp-controller="Participant" asp-action="MyEvents">
-                    <i class="bi bi-ticket-perforated"></i> My events
-                </a>
+                <a class="btn rd-btn rd-btn--primary rd-btn--lg" href="#events">Find a race</a>
+                <a class="btn rd-btn rd-btn--outline rd-btn--lg" asp-controller="Participant" asp-action="MyEvents">My events</a>
             }
             else if (role == "Organiser")
             {
-                <a class="rd-btn rd-btn--primary rd-btn--lg" asp-controller="Organiser" asp-action="Dashboard">
-                    <i class="bi bi-speedometer2"></i> Go to dashboard
-                </a>
-                <a class="rd-btn rd-btn--outline rd-btn--lg" asp-controller="Organiser" asp-action="CreateEvent">
-                    <i class="bi bi-plus-circle"></i> Create an event
-                </a>
+                <a class="btn rd-btn rd-btn--primary rd-btn--lg" asp-controller="Organiser" asp-action="Dashboard">Go to dashboard</a>
+                <a class="btn rd-btn rd-btn--outline rd-btn--lg" asp-controller="Organiser" asp-action="CreateEvent">Create an event</a>
             }
             else
             {
-                <a class="rd-btn rd-btn--primary rd-btn--lg" asp-controller="Account" asp-action="Register">
-                    <i class="bi bi-person-plus-fill"></i> Create a free account
-                </a>
-                <a class="rd-btn rd-btn--outline rd-btn--lg" asp-controller="Account" asp-action="Login">
-                    <i class="bi bi-box-arrow-in-right"></i> Log in
-                </a>
+                <a class="btn rd-btn rd-btn--primary rd-btn--lg" asp-controller="Account" asp-action="Register">Create a free account</a>
+                <a class="btn rd-btn rd-btn--outline rd-btn--lg" href="#events">Our events</a>
             }
         </div>
     </div>
@@ -51,6 +43,29 @@
             <p class="section__lead">Filter by distance, type or town and open any race to see its categories.</p>
         </div>
         <partial name="_EventBrowser" model="Model" />
+    </div>
+</section>
+
+<section class="section about" id="about">
+    <div class="container rd-container">
+        <div class="row align-items-center g-5">
+            <div class="col-md-6"><div class="about__shape" aria-hidden="true"></div></div>
+            <div class="col-md-6">
+                <h2 class="section__title about__title">About RaceDay</h2>
+                <p class="about__text">
+                    South Africa has a rich road events culture, from the Comrades Marathon to the Cape Town Cycle Tour and hundreds of community walks every weekend.
+                    RaceDay replaces paper forms and spreadsheets with one place where organisers run their events and participants take part.
+                </p>
+                <ul class="about__points">
+                    <li>Organisers create events, set up categories, confirm entries and publish results.</li>
+                    <li>Participants browse races, enter in a few taps and keep their personal race history.</li>
+                </ul>
+                @if (string.IsNullOrEmpty(role))
+                {
+                    <a class="btn rd-btn rd-btn--primary" asp-controller="Account" asp-action="Register">Become a member</a>
+                }
+            </div>
+        </div>
     </div>
 </section>
 
