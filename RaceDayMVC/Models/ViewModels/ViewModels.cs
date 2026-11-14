@@ -66,6 +66,7 @@ namespace RaceDayMVC.Models.ViewModels
 
         [Required(ErrorMessage = "Choose how you will use RaceDay.")]
         public string Role { get; set; } = "Participant";
+        public IFormFile? ProfilePicture { get; set; }
     }
 
     public class ProfileVm
