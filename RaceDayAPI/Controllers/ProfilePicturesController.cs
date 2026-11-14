@@ -1,3 +1,4 @@
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RaceDayAPI.Attributes;
@@ -37,7 +38,7 @@ namespace RaceDayAPI.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> UploadProfilePicture([FromForm] IFormFile file)
+        public async Task<IActionResult> UploadProfilePicture(IFormFile file)
         {
             int userId = HttpContext.GetUserId();
 

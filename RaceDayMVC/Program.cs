@@ -17,7 +17,7 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
-string apiBaseUrl = builder.Configuration["ApiSettings:BaseUrl"] ?? "http://localhost:5108";
+string apiBaseUrl = builder.Configuration["ApiSettings:BaseUrl"] ?? "http://localhost:5109";
 // Use the new RaceDayApiClient
 builder.Services.AddHttpClient<RaceDayApiClient>(client =>
 {
