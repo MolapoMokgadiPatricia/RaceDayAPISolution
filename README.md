@@ -163,6 +163,8 @@ The container may require environment variables for the database
 connection and any configured storage services. Configure these values
 for your environment before running the container. The port mapping may
 need to be adjusted to match the port exposed by the Dockerfile.
+## Git Action 
+<img width="642" height="233" alt="image" src="https://github.com/user-attachments/assets/7a14f821-9cae-4164-95c3-6a028043c24c" />
 
 ## Continuous Integration
 
@@ -196,7 +198,7 @@ error.
 
 A video demonstration of the RaceDay application can be added here:
 
-**YouTube video:** \[Insert the YouTube demonstration link\]
+**YouTube video:** https://youtu.be/hZOnJjlV4OA?si=EoXAjzrnRwjEORZD
 
 ## Current Limitations
 
