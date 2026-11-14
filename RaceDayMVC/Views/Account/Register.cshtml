@@ -15,7 +15,7 @@
             <h1>Create your account</h1>
             <p class="auth__sub">It takes less than a minute.</p>
 
-            <form asp-action="Register" method="post" data-validate>
+            <form asp-action="Register" method="post" enctype="multipart/form-data" data-validate>
                 <div asp-validation-summary="ModelOnly" class="form-error-box"></div>
 
                 <fieldset class="role-picker">
