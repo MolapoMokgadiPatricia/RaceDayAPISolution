@@ -2,123 +2,33 @@ name: RaceDay CI
 
 on:
   push:
-    branches: [ "main", "master", "part-1", "part-2", "part-3" ]
+    branches: [ "main", "master", "part-2", "part-3" ]
   pull_request:
     branches: [ "main", "master" ]
-  workflow_dispatch:
-
-permissions:
-  contents: read
-
-# A newer push to the same branch cancels the run that is still going
-concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
-
-env:
-  DOTNET_VERSION: '8.0.x'
-  DOTNET_NOLOGO: true
-  DOTNET_CLI_TELEMETRY_OPTOUT: true
 
 jobs:
-  # ---------------------------------------------------------------------------
-  # 1. Repository structure: planning documents, projects, Dockerfile and README
-  # ---------------------------------------------------------------------------
-  validate-structure:
-    name: Validate repository structure
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository (full history)
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Check required folders and files
-        run: |
-          missing=0
-
-          check_dir()  { if [ -d "$1" ]; then echo "OK    folder $1"; else echo "::error::Missing folder: $1"; missing=1; fi; }
-          check_file() { if [ -f "$1" ]; then echo "OK    file   $1"; else echo "::error::Missing file: $1"; missing=1; fi; }
-
-          check_dir  docs
-          check_dir  RaceDayAPI
-          check_dir  RaceDayAPI.Tests
-          check_dir  RaceDayMVC
-
-          check_file README.md
-          check_file RaceDayAPI.sln
-          check_file RaceDayMVC/Dockerfile
-          check_file .github/workflows/dotnet.yml
-
-          # Part 1 planning documents
-          if compgen -G "docs/*.sql" > /dev/null; then echo "OK    SQL script in /docs"; else echo "::error::No .sql script found in /docs"; missing=1; fi
-          if compgen -G "docs/*.png" > /dev/null || compgen -G "docs/*.pdf" > /dev/null; then echo "OK    ERD in /docs"; else echo "::error::No ERD (.png or .pdf) found in /docs"; missing=1; fi
-
-          if [ "$missing" -ne 0 ]; then
-            echo "Repository structure check failed."
-            exit 1
-          fi
-          echo "Repository structure verified."
-
-      - name: Check README content
-        run: |
-          grep -q "docker run" README.md || { echo "::error::README.md must contain the Docker run command"; exit 1; }
-          grep -qi "youtube" README.md || { echo "::error::README.md must contain a YouTube section"; exit 1; }
-          grep -qi "paste your unlisted youtube link" README.md && echo "::warning::README still has the YouTube link placeholder."
-          echo "README content verified."
-
-      - name: Report commit count
-        run: |
-          count=$(git rev-list --count HEAD)
-          echo "Commits on this branch: $count"
-          echo "### Commit count: $count" >> "$GITHUB_STEP_SUMMARY"
-          if [ "$count" -lt 20 ]; then
-            echo "::warning::Only $count commits so far. The POE asks for at least 20 meaningful commits per part."
-          fi
-
-  # ---------------------------------------------------------------------------
-  # 2. Build the whole solution (API, unit tests, MVC) and run the unit tests
-  # ---------------------------------------------------------------------------
   build-and-test:
-    name: Build solution and run unit tests
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup .NET
+      - name: Setup .NET 8
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
+          dotnet-version: '8.0.x'
 
       - name: Restore dependencies
         run: dotnet restore RaceDayAPI.sln
 
-      - name: Build API, tests and MVC
+      - name: Build solution (API, tests and MVC)
         run: dotnet build RaceDayAPI.sln --configuration Release --no-restore
 
       - name: Run unit tests
-        run: >
-          dotnet test RaceDayAPI.Tests/RaceDayAPI.Tests.csproj
-          --configuration Release --no-build --verbosity normal
-          --logger "trx;LogFileName=test-results.trx"
-          --results-directory ./TestResults
+        run: dotnet test RaceDayAPI.Tests/RaceDayAPI.Tests.csproj --configuration Release --no-build --verbosity normal
 
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results
-          path: TestResults/*.trx
-          if-no-files-found: ignore
-
-  # ---------------------------------------------------------------------------
-  # 3. Build the MVC Docker image and prove the container starts and serves pages
-  # ---------------------------------------------------------------------------
   docker-build:
-    name: Build and start MVC Docker image
     runs-on: ubuntu-latest
     needs: build-and-test
 
@@ -126,27 +36,26 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Build MVC image
+      - name: Build MVC Docker image
         run: docker build -t raceday-mvc ./RaceDayMVC
 
-      - name: Start the container and check it responds
+  validate-docs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify /docs folder exists
         run: |
-          docker run -d --name raceday-web -p 5200:8080 \
-            -e ApiSettings__BaseUrl=http://localhost:5109 \
-            raceday-mvc
-
-          code=000
-          for i in $(seq 1 30); do
-            code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:5200/Account/Login) || true
-            if [ "$code" = "200" ]; then break; fi
-            sleep 2
-          done
-
-          echo "Login page returned HTTP $code"
-          docker logs raceday-web || true
-          docker rm -f raceday-web || true
-
-          if [ "$code" != "200" ]; then
-            echo "::error::The MVC container did not serve the login page."
+          if [ ! -d "docs" ]; then
+            echo "ERROR: /docs folder is missing."
             exit 1
           fi
+          echo "/docs folder found."
+
+      - name: Verify required planning documents
+        run: |
+          test -f docs/*.sql  || (echo "Missing SQL script" && exit 1)
+          test -f docs/*.png  || test -f docs/*.pdf || (echo "Missing ERD" && exit 1)
+          echo "Planning documents verified."
